@@ -1,6 +1,6 @@
 /*
  * Copyright 2022 Mingchun Zhuang (http://me.mczhuang.cn)
- *
+ *  
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated
  * documentation files (the "Software"), to deal in the Software without restriction, including without limitation the
  * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
@@ -151,19 +151,23 @@ public class Game {
         window.pack();
         windowPanel.setFocusable(false);
         windowPanel.setFocusTraversalKeysEnabled(false);
-        windowPanel.setBackground(new Color(238, 238, 238));
+        windowPanel.setBackground(new Color(34, 139, 34));
         windowPanel.setLayout(null);
 
         //Add hashtag board to the current window panel.
         JTextField hashtagBoard = Settings.textInit("Joc: " + hashtag, "Comic Sans MS",
                 JTextField.CENTER, Font.BOLD, CONTENT_MARGIN, 0, CONTENT_WIDTH, CONTENT_MARGIN, 15,
                 false, false);
+        hashtagBoard.setForeground(Color.WHITE);
+        hashtagBoard.setBackground(new Color(34, 139, 34));
         windowPanel.add(hashtagBoard);
 
         //Add hashtag board to the current window panel.
         JTextField wordSourceBoard = Settings.textInit("Font de paraula actual: " + wordSource,
                 "Comic Sans MS", JTextField.CENTER, Font.BOLD, CONTENT_MARGIN, CONTENT_MARGIN / 2,
                 CONTENT_WIDTH, CONTENT_MARGIN, 15, false, false);
+        wordSourceBoard.setForeground(Color.WHITE);
+        wordSourceBoard.setBackground(new Color(34, 139, 34));
         wordSourceBoard.setFocusable(false);
         windowPanel.add(wordSourceBoard);
 
@@ -171,7 +175,8 @@ public class Game {
         messageBoard = Settings.textInit("", "Comic Sans MS", JTextField.CENTER, Font.BOLD,
                 CONTENT_MARGIN, CONTENT_MARGIN, CONTENT_WIDTH, CONTENT_HEIGHT, 20, false,
                 false);
-        messageBoard.setForeground(Color.RED);
+        messageBoard.setForeground(Color.YELLOW);
+        messageBoard.setBackground(new Color(34, 139, 34));
         messageBoard.setFocusable(false);
         windowPanel.add(messageBoard);
 
@@ -343,7 +348,7 @@ public class Game {
         helperWindow.setFocusable(true);
         helperWindowPanel.setFocusable(false);
         helperWindowPanel.setFocusTraversalKeysEnabled(false);
-        helperWindowPanel.setBackground(new Color(238, 238, 238));
+        helperWindowPanel.setBackground(new Color(34, 139, 34));
         helperWindowPanel.setLayout(null);
         helperWindow.setResizable(false);
         helperWindow.addWindowListener(new java.awt.event.WindowAdapter() {
