@@ -44,7 +44,7 @@ public class eWordle {
      * A constant String array that lists word source options ordered by difficulty.
      */
         private static final String[] wordSources = new String[]{"Català", "Matemàtiques", "Biologia", "Llengües", "Deportes", 
-            "Futbolistes", "Informàtica", "CET-4", "CET-6", "TOEFL", "GRE", "Oxford Dictionary", "All"};
+            "Futbolistes", "Informàtica", "Tot"};
 
     /**
      * This method launches the <var>setting</var> window with default setting and initialize <var>service</var>.
@@ -52,7 +52,7 @@ public class eWordle {
      * @param args a default String array which is not used by this program.
      */
     public static void main(String[] args) {
-        Settings.getInstance().configSettings(5, "All", wordLengths, wordSources);
+        Settings.getInstance().configSettings(5, "Català", wordLengths, wordSources);
         String initResult = Service.getInstance().initService(wordSources, wordLengths);
         if (initResult.length() > 0) {
             System.out.println("Error durant la inicialització:" + initResult);

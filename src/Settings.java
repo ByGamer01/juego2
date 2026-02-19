@@ -125,7 +125,7 @@ public class Settings {
         Settings.wordSourceOptions = wordSourceOptions;
 
         // Configure window settings.
-        window = new JFrame("Welcome - eWordle");
+        window = new JFrame("Benvingut - eWordle");
         window.setLocationRelativeTo(null);
         window.setResizable(false);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -536,23 +536,23 @@ public class Settings {
         instructionsText.setForeground(Color.WHITE);
         instructionsText.setMargin(new Insets(20, 20, 20, 20));
         
-        String instructions = "🎮 COM JUGAR A eWORDLE 🎮\n\n" +
-                "Objectiu:\n" +
-                "Endevina la paraula en 6 intents o menys!\n\n" +
-                "Com funciona:\n" +
-                "1. Trieu la longitud de la paraula (5-8 lletres)\n" +
-                "2. Trieu una font de paraules (Matemàtiques, Biologia, Llengües, etc.)\n" +
-                "3. Escriviu les lletres del vostre palpit i premeu ENTER\n" +
-                "4. Els colors us indicaran si la vostra resposta és correcta:\n" +
-                "   🟩 VERD: Lletra correcta en la posició correcta\n" +
-                "   🟨 GROC: Lletra que està a la paraula però en altra posició\n" +
-                "   ⬜ GRIS: Lletra que no està a la paraula\n\n" +
-                "Consells:\n" +
-                "- Deixa el camp buit per obteniruna paraula aleatòria\n" +
-                "- Pots usar hashtags per compartir el teu palpit\n" +
-                "- Pulsa el botó '?' durant el joc per obtenir ajuda\n\n" +
-                "Diccionaris disponibles:\n" +
-                "• Matemàtiques\n• Biologia\n• Llengües\n• Deportes\n• Futbolistes\n• Informàtica\n";
+        String instructions = "🎮 COM JUGAR A eWORDLE 🎮" +
+                "Objectiu:" +
+                "Endevina la paraula en 6 intents o menys!" +
+                "Com funciona:" +
+                "1. Trieu la longitud de la paraula (5-8 lletres)" +
+                "2. Trieu una font de paraules (Matemàtiques, Biologia, Llengües, etc.)" +
+                "3. Escriviu les lletres del vostre palpit i premeu ENTER" +
+                "4. Els colors us indicaran si la vostra resposta és correcta:" +
+                "   🟩 VERD: Lletra correcta en la posició correcta" +
+                "   🟨 GROC: Lletra que està a la paraula però en altra posició" +
+                "   ⬜ GRIS: Lletra que no està a la paraula" +
+                "Consells:" +
+                "- Deixa el camp buit per obtenir una paraula aleatòria" +
+                "- Pots usar hashtags per compartir el teu palpit" +
+                "- Pulsa el botó '?' durant el joc per obtenir ajuda" +
+                "Diccionaris disponibles:" +
+                "• Català\n• Matemàtiques\n • Biologia\n• Llengües\n• Esports\n• Futbolistes\n• Informàtica\n• Tot\n";
         
         instructionsText.setText(instructions);
         instructionsText.setCaretPosition(0);
