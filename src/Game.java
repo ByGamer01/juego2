@@ -143,7 +143,7 @@ public class Game {
         // Configure window.
         window = new JFrame("eWordle");
         window.setFocusable(true);
-        window.setResizable(true);
+        window.setResizable(false);
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         JPanel windowPanel = new JPanel();
         windowPanel.setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
