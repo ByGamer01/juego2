@@ -61,9 +61,28 @@ public class Service {
     private HashMap<Integer, HashMap<Integer, ArrayList<String>>> wordByLengthThenDifficultyCatalan;
 
     /**
+     * Per-source thematic dictionaries loaded from individual CSV files.
+     */
+    private HashMap<String, HashMap<Integer, HashMap<String, Integer>>> thematicIndex;
+    private HashMap<String, HashMap<Integer, HashMap<Integer, ArrayList<String>>>> thematicWords;
+
+    /**
      * A HashMap storing the <var>difficulty</var> of <var>wordSource</var>
      */
     private HashMap<String, Integer> difficultyByWordSource;
+
+    /**
+     * Mapping from word source name to CSV filename for thematic sources.
+     */
+    private static final HashMap<String, String> SOURCE_TO_CSV = new HashMap<>();
+    static {
+        SOURCE_TO_CSV.put("Matemàtiques", "Matematiques_dificultat.csv");
+        SOURCE_TO_CSV.put("Biologia", "Biologia_dificultat.csv");
+        SOURCE_TO_CSV.put("Llengües", "Llengues_dificultat.csv");
+        SOURCE_TO_CSV.put("Esports", "Deportes_dificultat.csv");
+        SOURCE_TO_CSV.put("Futbolistes", "Futbolistes_dificultat.csv");
+        SOURCE_TO_CSV.put("Informàtica", "Informatica_dificultat.csv");
+    }
 
     /**
      * Returns an instance of current class, where only one copy of instance will exist.
@@ -99,26 +118,21 @@ public class Service {
         indexByLength = new HashMap<>();
         wordByLengthThenDifficulty = new HashMap<>();
 
-        /* Load words from word source. */
+        /* Load words from main word source (Trimmed.csv). */
         try {
-            /* Word source file location may vary due to different running methods including running as a project or as
-            a single file. Try known relative locations first; if not found, search the filesystem (depth-limited)
-            for a file named "Trimmed.csv" and use its path. This makes the program tolerant to being launched from
-            a different working directory. */
             String FilePath = findTrimmedCsvPath();
             if (FilePath == null)
-                return "Trimmed.csv not found";
+                return "No s'ha trobat Trimmed.csv";
             FileReader fileReader = new FileReader(FilePath);
             BufferedReader bufReader = new BufferedReader(fileReader);
             for (String curLine = bufReader.readLine(); curLine != null; curLine = bufReader.readLine()) {
-                /* The word source is in csv format, where items are separated by a single comma. */
                 String[] items = curLine.split(",");
                 if (items.length != 2)
                     continue;
-                int difficulty = Integer.parseInt(items[1]);
+                int difficulty;
+                try { difficulty = Integer.parseInt(items[1].trim()); } catch (NumberFormatException e) { continue; }
                 String word = items[0].toUpperCase();
                 int wordLength = word.length();
-                /* Ignore the words that are impossible to be requested. */
                 if (wordLength < minLength || wordLength > maxLength)
                     continue;
                 indexByLength.putIfAbsent(wordLength, new HashMap<>());
@@ -134,37 +148,18 @@ public class Service {
             return e.toString();
         }
         
-        // Attempt to load an optional Catalan trimmed file (Trimmed_ca.csv) from common locations.
+        // Load optional Catalan trimmed file (Trimmed_ca.csv).
         indexByLengthCatalan = new HashMap<>();
         wordByLengthThenDifficultyCatalan = new HashMap<>();
         try {
-            String caPath = null;
-            if (new File("./Word Sources/Trimmed_ca.csv").exists()) caPath = "./Word Sources/Trimmed_ca.csv";
-            else if (new File("./src/Word Sources/Trimmed_ca.csv").exists()) caPath = "./src/Word Sources/Trimmed_ca.csv";
+            String caPath = findCsvPath("Trimmed_ca.csv");
             if (caPath != null) {
-                FileReader fr = new FileReader(caPath);
-                BufferedReader br = new BufferedReader(fr);
-                for (String curLine = br.readLine(); curLine != null; curLine = br.readLine()) {
-                    String[] items = curLine.split(",");
-                    if (items.length != 2) continue;
-                    int difficulty = Integer.parseInt(items[1]);
-                    String word = items[0].toUpperCase();
-                    int wordLength = word.length();
-                    if (wordLength < minLength || wordLength > maxLength) continue;
-                    indexByLengthCatalan.putIfAbsent(wordLength, new HashMap<>());
-                    indexByLengthCatalan.get(wordLength).put(word, difficulty);
-
-                    wordByLengthThenDifficultyCatalan.putIfAbsent(wordLength, new HashMap<>());
-                    HashMap<Integer, ArrayList<String>> m = wordByLengthThenDifficultyCatalan.get(wordLength);
-                    m.putIfAbsent(difficulty, new ArrayList<>());
-                    m.get(difficulty).add(word);
-                }
+                loadCsvInto(caPath, minLength, maxLength, indexByLengthCatalan, wordByLengthThenDifficultyCatalan);
             }
         } catch (Exception ignored) {
         }
 
-        // If no Catalan-specific file was found/loaded, fall back to using the main Trimmed.csv database
-        // so the "Català" option has a large dictionary immediately.
+        // Fall back to main Trimmed.csv if no Catalan-specific file was found.
         if (indexByLengthCatalan.isEmpty()) {
             indexByLengthCatalan = indexByLength;
         }
@@ -172,7 +167,111 @@ public class Service {
             wordByLengthThenDifficultyCatalan = wordByLengthThenDifficulty;
         }
 
+        // Load thematic CSV files for each word source.
+        thematicIndex = new HashMap<>();
+        thematicWords = new HashMap<>();
+        for (Map.Entry<String, String> entry : SOURCE_TO_CSV.entrySet()) {
+            String sourceName = entry.getKey();
+            String csvFile = entry.getValue();
+            String csvPath = findCsvPath(csvFile);
+            if (csvPath != null) {
+                HashMap<Integer, HashMap<String, Integer>> idx = new HashMap<>();
+                HashMap<Integer, HashMap<Integer, ArrayList<String>>> words = new HashMap<>();
+                try {
+                    loadCsvInto(csvPath, minLength, maxLength, idx, words);
+                    if (!idx.isEmpty()) {
+                        thematicIndex.put(sourceName, idx);
+                        thematicWords.put(sourceName, words);
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+        }
+
+        // "Tot" combines Catalan + all thematic sources.
+        HashMap<Integer, HashMap<String, Integer>> totIdx = new HashMap<>();
+        HashMap<Integer, HashMap<Integer, ArrayList<String>>> totWords = new HashMap<>();
+        // Add Catalan words first.
+        mergeDictionaries(totIdx, totWords, indexByLengthCatalan, wordByLengthThenDifficultyCatalan);
+        // Add all thematic words.
+        for (String sourceName : thematicIndex.keySet()) {
+            mergeDictionaries(totIdx, totWords, thematicIndex.get(sourceName), thematicWords.get(sourceName));
+        }
+        if (!totIdx.isEmpty()) {
+            thematicIndex.put("Tot", totIdx);
+            thematicWords.put("Tot", totWords);
+        }
+
         return "";
+    }
+
+    /**
+     * Load a CSV file (word,difficulty) into the given index and words maps.
+     */
+    private void loadCsvInto(String path, int minLength, int maxLength,
+                              HashMap<Integer, HashMap<String, Integer>> idx,
+                              HashMap<Integer, HashMap<Integer, ArrayList<String>>> words) throws Exception {
+        FileReader fr = new FileReader(path);
+        BufferedReader br = new BufferedReader(fr);
+        for (String curLine = br.readLine(); curLine != null; curLine = br.readLine()) {
+            String[] items = curLine.split(",");
+            if (items.length != 2) continue;
+            int difficulty;
+            try { difficulty = Integer.parseInt(items[1].trim()); } catch (NumberFormatException e) { continue; }
+            String word = items[0].toUpperCase();
+            int wordLength = word.length();
+            if (wordLength < minLength || wordLength > maxLength) continue;
+            idx.putIfAbsent(wordLength, new HashMap<>());
+            idx.get(wordLength).put(word, difficulty);
+            words.putIfAbsent(wordLength, new HashMap<>());
+            HashMap<Integer, ArrayList<String>> m = words.get(wordLength);
+            m.putIfAbsent(difficulty, new ArrayList<>());
+            m.get(difficulty).add(word);
+        }
+        br.close();
+    }
+
+    /**
+     * Merge source dictionaries into target dictionaries (avoids duplicates by word).
+     */
+    private void mergeDictionaries(HashMap<Integer, HashMap<String, Integer>> targetIdx,
+                                    HashMap<Integer, HashMap<Integer, ArrayList<String>>> targetWords,
+                                    HashMap<Integer, HashMap<String, Integer>> sourceIdx,
+                                    HashMap<Integer, HashMap<Integer, ArrayList<String>>> sourceWords) {
+        for (Map.Entry<Integer, HashMap<String, Integer>> lengthEntry : sourceIdx.entrySet()) {
+            int len = lengthEntry.getKey();
+            targetIdx.putIfAbsent(len, new HashMap<>());
+            for (Map.Entry<String, Integer> wordEntry : lengthEntry.getValue().entrySet()) {
+                if (!targetIdx.get(len).containsKey(wordEntry.getKey())) {
+                    targetIdx.get(len).put(wordEntry.getKey(), wordEntry.getValue());
+                    int diff = wordEntry.getValue();
+                    targetWords.putIfAbsent(len, new HashMap<>());
+                    targetWords.get(len).putIfAbsent(diff, new ArrayList<>());
+                    targetWords.get(len).get(diff).add(wordEntry.getKey());
+                }
+            }
+        }
+    }
+
+    /**
+     * Try to locate a CSV file by checking common relative paths.
+     */
+    private String findCsvPath(String filename) {
+        String[] candidates = new String[]{
+            "./Word Sources/" + filename,
+            "./src/Word Sources/" + filename
+        };
+        for (String c : candidates)
+            if (new File(c).exists())
+                return c;
+        // Shallow recursive search
+        try (Stream<Path> stream = Files.walk(Paths.get("."), 5)) {
+            Path found = stream.filter(p -> p.getFileName().toString().equalsIgnoreCase(filename)).findFirst().orElse(null);
+            if (found != null)
+                return found.toFile().getPath();
+        } catch (IOException ignored) {
+        }
+        return null;
     }
 
     /**
@@ -182,20 +281,25 @@ public class Service {
      * @return the path to Trimmed.csv or null if not found
      */
     private String findTrimmedCsvPath() {
-        // Try common relative locations first
-        String[] candidates = new String[]{"./Word Sources/Trimmed.csv", "./src/Word Sources/Trimmed.csv"};
-        for (String c : candidates)
-            if (new File(c).exists())
-                return c;
+        return findCsvPath("Trimmed.csv");
+    }
 
-        // If not found, do a shallow recursive search (max depth 5) from current working directory
-        try (Stream<Path> stream = Files.walk(Paths.get("."), 5)) {
-            Path found = stream.filter(p -> p.getFileName().toString().equalsIgnoreCase("Trimmed.csv")).findFirst().orElse(null);
-            if (found != null)
-                return found.toFile().getPath();
-        } catch (IOException ignored) {
-        }
-        return null;
+    /**
+     * Returns the appropriate index map for a given word source.
+     */
+    private HashMap<Integer, HashMap<String, Integer>> getIndexForSource(String wordSource) {
+        if ("Català".equals(wordSource)) return indexByLengthCatalan;
+        if (thematicIndex.containsKey(wordSource)) return thematicIndex.get(wordSource);
+        return indexByLength;
+    }
+
+    /**
+     * Returns the appropriate words map for a given word source.
+     */
+    private HashMap<Integer, HashMap<Integer, ArrayList<String>>> getWordsForSource(String wordSource) {
+        if ("Català".equals(wordSource)) return wordByLengthThenDifficultyCatalan;
+        if (thematicWords.containsKey(wordSource)) return thematicWords.get(wordSource);
+        return wordByLengthThenDifficulty;
     }
 
     /**
@@ -215,19 +319,16 @@ public class Service {
      */
     public String checkExistence(String word, String wordSource) {
         if (word.length() == 0) return "";
-        int difficulty = difficultyByWordSource.get(wordSource);
+        HashMap<Integer, HashMap<String, Integer>> idx = getIndexForSource(wordSource);
         int length = word.length();
-        if ("Català".equals(wordSource)) {
-            if (indexByLengthCatalan == null || !indexByLengthCatalan.containsKey(length) || !indexByLengthCatalan.get(length).containsKey(word))
-                return "Not Found";
-            if (indexByLengthCatalan.get(length).get(word) > difficulty)
-                return "The word is too difficult";
+        if (idx == null || !idx.containsKey(length) || !idx.get(length).containsKey(word))
+            return "No trobat";
+        // For thematic sources, all difficulties are valid.
+        if (thematicIndex.containsKey(wordSource) || "Català".equals(wordSource))
             return "";
-        }
-        if (!indexByLength.containsKey(length) || !indexByLength.get(length).containsKey(word))
-            return "Not Found";
-        if (indexByLength.get(length).get(word) > difficulty)
-            return "The word is too difficult";
+        int difficulty = difficultyByWordSource.get(wordSource);
+        if (idx.get(length).get(word) > difficulty)
+            return "La paraula és massa difícil";
         return "";
     }
 
@@ -235,35 +336,40 @@ public class Service {
      * Returns a random word with {@code O(1)} time complexity under given restrictions.
      *
      * <p>
-     * If the returning String is not {@code "Not Found"}, the word returns is valid.
+     * If the returning String is not {@code "No trobat"}, the word returns is valid.
      *
      * @param wordLength an int describing the length restriction.
      * @param wordSource a String representing the difficulty level of current setting.
-     * @return a random word or {@code "Not Found"} under given conditions.
+     * @return a random word or {@code "No trobat"} under given conditions.
      */
     public String generateRandomWord(int wordLength, String wordSource) {
-        int difficulty = difficultyByWordSource.get(wordSource);
-        HashMap<Integer, ArrayList<String>> wordByDifficulty;
-        if ("Català".equals(wordSource)) {
-            if (wordByLengthThenDifficultyCatalan == null) return "Not Found";
-            wordByDifficulty = wordByLengthThenDifficultyCatalan.get(wordLength);
-        } else
-            wordByDifficulty = wordByLengthThenDifficulty.get(wordLength);
+        HashMap<Integer, HashMap<Integer, ArrayList<String>>> wordsMap = getWordsForSource(wordSource);
+        if (wordsMap == null) return "No trobat";
+        HashMap<Integer, ArrayList<String>> wordByDifficulty = wordsMap.get(wordLength);
+        if (wordByDifficulty == null) return "No trobat";
+
+        // For thematic sources and Català, use all difficulty levels available.
+        int maxDifficulty;
+        if (thematicWords.containsKey(wordSource) || "Català".equals(wordSource)) {
+            maxDifficulty = 3; // Max difficulty in CSVs
+        } else {
+            maxDifficulty = difficultyByWordSource.get(wordSource);
+        }
+
         int total = 0;
-        if (wordByDifficulty == null) return "Not Found";
-        for (int i = 1; i <= difficulty; i++)
-            if (wordByDifficulty.containsKey(i)) {
+        for (int i = 1; i <= maxDifficulty; i++)
+            if (wordByDifficulty.containsKey(i))
                 total += wordByDifficulty.get(i).size();
-            }
+        if (total == 0) return "No trobat";
         int randomIndex = new Random().nextInt(total);
-        for (int i = 1; i <= difficulty; i++)
+        for (int i = 1; i <= maxDifficulty; i++)
             if (wordByDifficulty.containsKey(i)) {
                 int size = wordByDifficulty.get(i).size();
                 if (randomIndex < size)
                     return wordByDifficulty.get(i).get(randomIndex);
                 randomIndex -= size;
             }
-        return "Not Found";
+        return "No trobat";
     }
 
     /**
@@ -290,24 +396,24 @@ public class Service {
             if (ch == '(') {
                 isContainedRoundBracket = true;
                 if (isInsideRoundBracket || isInsideSquareBracket)
-                    return "Nested Brackets Not Supported$";
+                    return "Claudàtors niuats no suportats$";
                 else
                     isInsideRoundBracket = true;
             } else if (ch == ')') {
                 if (isInsideRoundBracket)
                     isInsideRoundBracket = false;
                 else
-                    return "Unpair Bracket Found$";
+                    return "Claudàtor sense parella$";
             } else if (ch == '[') {
                 if (isInsideSquareBracket || isInsideRoundBracket)
-                    return "Nested Brackets Not Supported$";
+                    return "Claudàtors niuats no suportats$";
                 else
                     isInsideSquareBracket = true;
             } else if (ch == ']') {
                 if (isInsideSquareBracket)
                     isInsideSquareBracket = false;
                 else
-                    return "Unpair Bracket Found$";
+                    return "Claudàtor sense parella$";
             } else if (Character.isAlphabetic(ch)) {
                 if (isInsideRoundBracket)
                     mustExistCount.put(ch, mustExistCount.getOrDefault(ch, 0) + 1);
@@ -319,50 +425,56 @@ public class Service {
                 if (isInsideRoundBracket)
                     eligibilityMatchAll = true;
                 else if (isInsideSquareBracket)
-                    return "* Inside [] Not Allowed$";
+                    return "* dins de [] no permès$";
                 else
                     patternString.append(ch);
             } else
-                return "Illegal Input$";
+                return "Entrada no vàlida$";
         }
         final int initWordLength = Settings.getInitWord().length();
         if (patternString.length() != initWordLength)
-            return "Word Length too " + (patternString.length() < initWordLength ? "small" : "large") + "$";
+            return "Longitud massa " + (patternString.length() < initWordLength ? "curta" : "llarga") + "$";
         if (isInsideRoundBracket || isInsideSquareBracket)
-            return "Unpair Bracket Found$";
+            return "Claudàtor sense parella$";
         // Scan the database to filter out valid candidate words.
         if (!isContainedRoundBracket)
             eligibilityMatchAll = true;
-        HashMap<Integer, ArrayList<String>> wordByDifficulty;
-        if ("Català".equals(Settings.getWordSource())) {
-            if (wordByLengthThenDifficultyCatalan == null)
-                return "$" + ("Found 0 result(s).") + "\n";
-            wordByDifficulty = wordByLengthThenDifficultyCatalan.get(initWordLength);
-        } else
-            wordByDifficulty = wordByLengthThenDifficulty.get(initWordLength);
-        int difficultyLevel = difficultyByWordSource.get(Settings.getWordSource());
+
+        HashMap<Integer, HashMap<Integer, ArrayList<String>>> wordsMap = getWordsForSource(Settings.getWordSource());
+        if (wordsMap == null)
+            return "$" + ("S'han trobat 0 resultat(s).") + "\n";
+        HashMap<Integer, ArrayList<String>> wordByDifficulty = wordsMap.get(initWordLength);
         if (wordByDifficulty == null)
-            return "$" + ("Found 0 result(s).") + "\n";
+            return "$" + ("S'han trobat 0 resultat(s).") + "\n";
+
+        // For thematic sources, use all difficulty levels.
+        int difficultyLevel;
+        if (thematicWords.containsKey(Settings.getWordSource()) || "Català".equals(Settings.getWordSource())) {
+            difficultyLevel = 3;
+        } else {
+            difficultyLevel = difficultyByWordSource.get(Settings.getWordSource());
+        }
+
         StringBuilder results = new StringBuilder();
         int candidateCount = 0;
         for (int currentDifficulty = 1; currentDifficulty <= difficultyLevel; currentDifficulty++) {
             ArrayList<String> currentWordList = wordByDifficulty.get(currentDifficulty);
+            if (currentWordList == null) continue;
             for (String word : currentWordList) {
                 boolean ok = true;
                 HashMap<Character, Integer> existCount = new HashMap<>();
                 for (int i = 0; i < initWordLength; i++) {
                     char ch = word.charAt(i);
                     if (ch != patternString.charAt(i)) {
-                        if (patternString.charAt(i) != '*') { // Pattern not match.
+                        if (patternString.charAt(i) != '*') {
                             ok = false;
                             break;
                         }
-                        // Pattern string here is *.
                         else if (mustNotExist.contains(ch)) {
                             ok = false;
                             break;
                         } else if (existCount.getOrDefault(ch, 0) <
-                                mustExistCount.getOrDefault(ch, 0)) { // Check must exist condition first.
+                                mustExistCount.getOrDefault(ch, 0)) {
                             existCount.put(ch, existCount.getOrDefault(ch, 0) + 1);
                         } else if (!eligibilityMatchAll) {
                             ok = false;
@@ -383,6 +495,6 @@ public class Service {
                 }
             }
         }
-        return "$" + ("Found " + candidateCount + " result(s)" + (candidateCount > 0 ? ":" : ".")) + "\n" + results;
+        return "$" + ("S'han trobat " + candidateCount + " resultat(s)" + (candidateCount > 0 ? ":" : ".")) + "\n" + results;
     }
 }

@@ -342,7 +342,7 @@ public class Game {
         // Configure current helper window.
         final int helperWindowWidth = 600;
         final int helperWindowHeight = 800;
-        helperWindow = new JFrame("Helper");
+        helperWindow = new JFrame("Ajuda"); // Inicializamos el JFrame con el titulo Ayuda, ya que sera la pestaña de ayuda
         JPanel helperWindowPanel = new JPanel();
         helperWindowPanel.setPreferredSize(new Dimension(helperWindowWidth, helperWindowHeight));
         helperWindow.setFocusable(true);

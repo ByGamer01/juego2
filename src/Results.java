@@ -91,6 +91,11 @@ public class Results {
     private final JTextField copiedReminder;
 
     /**
+     * A {@code JTextField} holding the counter display.
+     */
+    private final JTextField counterBoard;
+
+    /**
      * A static {@code JTextField} holding the tries that the user used to guess.
      */
     private int triesUsed;
@@ -111,6 +116,12 @@ public class Results {
     private boolean isOpenedHelper = false;
 
     /**
+     * Static counters for wins and losses across the session.
+     */
+    private static int totalWins = 0;
+    private static int totalLosses = 0;
+
+    /**
      * The only constructor for class {@code Results}.
      *
      * <p>
@@ -129,59 +140,75 @@ public class Results {
         windowPanel.setPreferredSize(new Dimension(WINDOW_WIDTH, WINDOW_HEIGHT));
         window.add(windowPanel);
         window.pack();
-        windowPanel.setBackground(new Color(238, 238, 238));
+        windowPanel.setBackground(new Color(34, 139, 34));
         windowPanel.setLayout(null);
 
         // Add result board to the window.
-        int currentHeight = CONTENT_MARGIN;
+        int currentHeight = CONTENT_MARGIN / 2;
         resultBoard = Settings.textInit("", "Comic Sans MS", JTextField.CENTER, Font.BOLD,
                 CONTENT_MARGIN, currentHeight, CONTENT_WIDTH, CONTENT_HEIGHT, 80, false,
                 false);
+        resultBoard.setForeground(Color.WHITE);
         windowPanel.add(resultBoard);
 
-        // Add the hint board that displays "Guessing" and word board to the window.
-        currentHeight += CONTENT_HEIGHT + CONTENT_MARGIN;
+        // Add the hint board that displays "Endevinar" and word board to the window.
+        currentHeight += CONTENT_HEIGHT + CONTENT_MARGIN / 2;
         JTextField hintBoard = Settings.textInit("Endevinar", "Comic Sans MS", JTextField.CENTER,
                 Font.PLAIN, CONTENT_MARGIN, currentHeight - CONTENT_MARGIN / 2, CONTENT_WIDTH, CONTENT_MARGIN,
                 30, false, false);
+        hintBoard.setForeground(Color.WHITE);
         windowPanel.add(hintBoard);
         wordBoard = Settings.textInit("", "", JTextField.CENTER, Font.PLAIN, CONTENT_MARGIN,
                 currentHeight, CONTENT_WIDTH, CONTENT_HEIGHT, 60, false, false);
+        wordBoard.setForeground(Color.WHITE);
         windowPanel.add(wordBoard);
 
         // Add the tries board to the window.
-        currentHeight += CONTENT_HEIGHT + CONTENT_MARGIN;
+        currentHeight += CONTENT_HEIGHT + CONTENT_MARGIN / 2;
         triesBoard = Settings.textInit("", "Comic Sans MS", JTextField.CENTER, Font.PLAIN,
-                CONTENT_MARGIN, currentHeight, CONTENT_WIDTH, CONTENT_HEIGHT, 60, false,
+                CONTENT_MARGIN, currentHeight, CONTENT_WIDTH, CONTENT_HEIGHT / 2, 40, false,
                 false);
+        triesBoard.setForeground(Color.WHITE);
         windowPanel.add(triesBoard);
 
+        // Add counter board (wins/losses).
+        currentHeight += CONTENT_HEIGHT / 2 + 10;
+        counterBoard = Settings.textInit("", "Comic Sans MS", JTextField.CENTER, Font.PLAIN,
+                CONTENT_MARGIN, currentHeight, CONTENT_WIDTH, CONTENT_MARGIN, 22, false, false);
+        counterBoard.setForeground(Color.YELLOW);
+        windowPanel.add(counterBoard);
+
         // Add two buttons to the window with event handlers respectively.
-        currentHeight += CONTENT_HEIGHT + CONTENT_MARGIN;
+        currentHeight += CONTENT_MARGIN + 10;
         JButton toSettings = Settings.initButton("Configuració", CONTENT_MARGIN, currentHeight,
-                (CONTENT_WIDTH - CONTENT_MARGIN) / 2, CONTENT_HEIGHT, 50, event -> {
+                (CONTENT_WIDTH - CONTENT_MARGIN) / 2, CONTENT_HEIGHT, 40, event -> {
                     Settings.getInstance().setVisibleStatus(true);
                     window.setVisible(false);
                 });
+        toSettings.setBackground(new Color(25, 100, 25));
+        toSettings.setForeground(Color.WHITE);
         toSettings.setToolTipText("Torna a la pàgina de Preferències");
         windowPanel.add(toSettings);
-        JButton toRestart = Settings.initButton("Restart",
+        JButton toRestart = Settings.initButton("Tornar a jugar",
                 CONTENT_MARGIN * 2 + (CONTENT_WIDTH - CONTENT_MARGIN) / 2, currentHeight,
-                (CONTENT_WIDTH - CONTENT_MARGIN) / 2, CONTENT_HEIGHT, 50, event -> {
+                (CONTENT_WIDTH - CONTENT_MARGIN) / 2, CONTENT_HEIGHT, 40, event -> {
                     Game.createInstance().playGame(Settings.getWordSource(), Settings.getInitWord(),
                             Settings.getCurrentHashtag());
                     window.setVisible(false);
                 });
+        toRestart.setBackground(new Color(25, 100, 25));
+        toRestart.setForeground(Color.WHITE);
         toRestart.setToolTipText("Utilitza les preferències actuals amb la mateixa paraula");
         windowPanel.add(toRestart);
 
         // Add share button with its event handler and its reminder to the window.
         currentHeight += CONTENT_HEIGHT;
         copiedReminder = Settings.textInit("", "Comic Sans MS", JTextField.CENTER,
-                Font.PLAIN, CONTENT_MARGIN, currentHeight, CONTENT_WIDTH, CONTENT_MARGIN, 20,
+                Font.PLAIN, CONTENT_MARGIN, currentHeight, CONTENT_WIDTH, CONTENT_MARGIN / 2, 16,
                 false, false);
+        copiedReminder.setForeground(Color.YELLOW);
         windowPanel.add(copiedReminder);
-        currentHeight += CONTENT_MARGIN;
+        currentHeight += CONTENT_MARGIN / 2;
         JButton shareResult = Settings.initButton("Comparteix", CONTENT_MARGIN, currentHeight,
                 CONTENT_WIDTH, CONTENT_HEIGHT, 50, event -> {
                     StringBuilder resultStr = new StringBuilder();
@@ -200,6 +227,8 @@ public class Results {
                     clipboard.setContents(stringSelection, null);
                     copiedReminder.setText("Copiat al porta-retalls.");
                 });
+        shareResult.setBackground(new Color(25, 100, 25));
+        shareResult.setForeground(Color.WHITE);
         shareResult.setToolTipText("Copia els teus resultats al porta-retalls.");
         windowPanel.add(shareResult);
 
@@ -235,12 +264,18 @@ public class Results {
         this.isSuccess = isSuccess;
         this.isOpenedHelper = isOpenedHelper;
         triesUsed = tries;
+
+        // Update counter
+        if (isSuccess) totalWins++;
+        else totalLosses++;
+
         window.setLocationRelativeTo(null);
         resultBoard.setText(isSuccess ? "Èxit" : "Ha fallat");
-        Game.setColor(resultBoard, isSuccess ? new Color(121, 167, 107) : new Color(121, 124, 126),
-                Color.white);
+        Game.setColor(resultBoard, isSuccess ? new Color(121, 167, 107) : new Color(198, 60, 60),
+                new Color(34, 139, 34));
         wordBoard.setText(initWord);
         triesBoard.setText("Intents: " + (isOpenedHelper ? "*" : "") + tries);
+        counterBoard.setText("Guanyades: " + totalWins + "  |  Perdudes: " + totalLosses);
         window.setVisible(true);
     }
 }
