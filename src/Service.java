@@ -188,7 +188,7 @@ public class Service {
             }
         }
 
-        // "Tot" combines Catalan + all thematic sources.
+        // "Tot" combina Catalan con todas las tematicas
         HashMap<Integer, HashMap<String, Integer>> totIdx = new HashMap<>();
         HashMap<Integer, HashMap<Integer, ArrayList<String>>> totWords = new HashMap<>();
         // Add Catalan words first.
