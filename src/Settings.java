@@ -127,7 +127,7 @@ public class Settings {
      *                          chosen.
      */
     public void configSettings(int wordLength, String wordSource, String[] wordLengthOptions,
-            String[] wordSourceOptions) {
+        String[] wordSourceOptions) {
         Settings.instance = this;
         Settings.wordLength = wordLength;
         Settings.wordSource = wordSource;
