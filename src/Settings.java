@@ -242,6 +242,27 @@ public class Settings {
                 false, false);
         hintLabel.setForeground(new Color(200, 255, 200));
         windowPanel.add(hintLabel);
+        currentY += labelHeight + fieldGap;
+
+        // Add logo image below hint
+        try {
+            String imagePath = "juego2\\javadoc\\script-dir\\images\\logo Cide.jpg";
+            java.io.File imageFile = new java.io.File(imagePath);
+            if (imageFile.exists()) {
+                ImageIcon logoIcon = new ImageIcon(imagePath);
+                Image logoImage = logoIcon.getImage();
+                Image scaledImage = logoImage.getScaledInstance(200, 130, Image.SCALE_SMOOTH);
+                JLabel logoLabel = new JLabel(new ImageIcon(scaledImage));
+                logoLabel.setBounds(WIDTH_MARGIN + 150, currentY, 200, 175);
+                windowPanel.add(logoLabel);
+                currentY += 130 + fieldGap;
+            } else {
+                System.out.println("Archivo no encontrado: " + imageFile.getAbsolutePath());
+            }
+        } catch (Exception e) {
+            System.err.println("Error cargando la imagen: " + e.getMessage());
+            e.printStackTrace();
+        }
 
         // ---- BOTTOM SECTION (error message + buttons) ----
         int bottomY = WINDOW_HEIGHT - BREAK_HEIGHT * 2 - CONTENT_HEIGHT;
@@ -495,7 +516,7 @@ public class Settings {
      * @param hashtagWord       a String describing the Wordle word selected.
      * @return a String describing the decoded hashtag result.
      */
-    static private String hashtagEncoder(String hashtagWordSource, String hashtagWord) {
+    static String hashtagEncoder(String hashtagWordSource, String hashtagWord) {
         // System.out.println("Encoding:"+hashtagWordSource+" "+hashtagWord);
         final long hashtagLetterCount = 26 + 10;
         final long radix = 29;
