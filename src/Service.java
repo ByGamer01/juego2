@@ -319,7 +319,7 @@ public class Service {
      */
     public String checkExistence(String word, String wordSource) {
         if (word.length() == 0) return "";
-        HashMap<Integer, HashMap<String, Integer>> idx = getIndexForSource(wordSource);
+        HashMap<Integer, HashMap<String, Integer>> idx = getIndexForSource(wordSource); // HashMap para el indice de cada palabra
         int length = word.length();
         if (idx == null || !idx.containsKey(length) || !idx.get(length).containsKey(word))
             return "No trobat";
