@@ -76,8 +76,8 @@ public class Service {
      */
     private static final HashMap<String, String> SOURCE_TO_CSV = new HashMap<>();
     static {
-        SOURCE_TO_CSV.put("Matemàtiques", "Matematiques_dificultat.csv");
-        SOURCE_TO_CSV.put("Biologia", "Biologia_dificultat.csv");
+        SOURCE_TO_CSV.put("Matemàtiques", "Matematiques_dificultat.csv"); // Si pone matematicas, se le devuelve/da el valor de matematiques_dificultat.csv ; asi funciona el HashMap @ByGamer01
+        SOURCE_TO_CSV.put("Biologia", "Biologia_dificultat.csv"); // .put para poner informacion dentro del HashMap @ByGamer01
         SOURCE_TO_CSV.put("Llengües", "Llengues_dificultat.csv");
         SOURCE_TO_CSV.put("Esports", "Deportes_dificultat.csv");
         SOURCE_TO_CSV.put("Futbolistes", "Futbolistes_dificultat.csv");
@@ -112,7 +112,7 @@ public class Service {
     public String initService(String[] wordSources, String[] wordLengths) {
         final int minLength = Integer.parseInt(wordLengths[0]);
         final int maxLength = Integer.parseInt(wordLengths[wordLengths.length - 1]);
-        difficultyByWordSource = new HashMap<>();
+        difficultyByWordSource = new HashMap<>(); //  otro HashMap pero para la dificultad de la palabra @ByGamer01
         for (int i = 0; i < wordSources.length; i++)
             difficultyByWordSource.put(wordSources[i], i + 1);
         indexByLength = new HashMap<>();
@@ -281,7 +281,7 @@ public class Service {
      * @return the path to Trimmed.csv or null if not found
      */
     private String findTrimmedCsvPath() {
-        return findCsvPath("Trimmed.csv");
+        return findCsvPath("Trimmed.csv"); // Este es el metodo que busca el camino del archivo csv de nuestras palabras @ByGamer01
     }
 
     /**
