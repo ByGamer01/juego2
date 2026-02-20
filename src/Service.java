@@ -152,7 +152,7 @@ public class Service {
         indexByLengthCatalan = new HashMap<>();
         wordByLengthThenDifficultyCatalan = new HashMap<>();
         try {
-            String caPath = findCsvPath("Trimmed_ca.csv");
+            String caPath = findCsvPath("Trimmed.csv"); // Removido el trimmed_ca.csv
             if (caPath != null) {
                 loadCsvInto(caPath, minLength, maxLength, indexByLengthCatalan, wordByLengthThenDifficultyCatalan);
             }

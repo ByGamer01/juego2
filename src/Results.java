@@ -181,7 +181,7 @@ public class Results {
         // Add two buttons to the window with event handlers respectively.
         currentHeight += CONTENT_MARGIN + 10;
         JButton toSettings = Settings.initButton("Configuració", CONTENT_MARGIN, currentHeight,
-                (CONTENT_WIDTH - CONTENT_MARGIN) / 2, CONTENT_HEIGHT, 40, event -> {
+                (CONTENT_WIDTH - CONTENT_MARGIN) / 2, CONTENT_HEIGHT, 20, event -> {
                     Settings.getInstance().setVisibleStatus(true);
                     window.setVisible(false);
                 });
@@ -191,7 +191,7 @@ public class Results {
         windowPanel.add(toSettings);
         JButton toRestart = Settings.initButton("Tornar a jugar",
                 CONTENT_MARGIN * 2 + (CONTENT_WIDTH - CONTENT_MARGIN) / 2, currentHeight,
-                (CONTENT_WIDTH - CONTENT_MARGIN) / 2, CONTENT_HEIGHT, 40, event -> {
+                (CONTENT_WIDTH - CONTENT_MARGIN) / 2, CONTENT_HEIGHT, 20, event -> {
                     Game.createInstance().playGame(Settings.getWordSource(), Settings.getInitWord(),
                             Settings.getCurrentHashtag());
                     window.setVisible(false);
@@ -210,7 +210,7 @@ public class Results {
         windowPanel.add(copiedReminder);
         currentHeight += CONTENT_MARGIN / 2;
         JButton shareResult = Settings.initButton("Comparteix", CONTENT_MARGIN, currentHeight,
-                CONTENT_WIDTH, CONTENT_HEIGHT, 50, event -> {
+                CONTENT_WIDTH, CONTENT_HEIGHT, 40, event -> {
                     StringBuilder resultStr = new StringBuilder();
                     resultStr.append("eWordle ").append(isOpenedHelper ? "*" : "").append(isSuccess ? triesUsed : "X")
                             .append("/").append(Settings.getInitWord().length() + 1).append("\n");
