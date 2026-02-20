@@ -192,15 +192,8 @@ public class Results {
         JButton toRestart = Settings.initButton("Tornar a jugar",
                 CONTENT_MARGIN * 2 + (CONTENT_WIDTH - CONTENT_MARGIN) / 2, currentHeight,
                 (CONTENT_WIDTH - CONTENT_MARGIN) / 2, CONTENT_HEIGHT, 20, event -> {
-                    String newWord = Service.getInstance().generateRandomWord(
-                            Settings.getInitWord().length(), Settings.getWordSource());
-                    if (newWord != null && !newWord.equals("No trobat")) {
-                        Game.createInstance().playGame(Settings.getWordSource(), newWord, 
-                                Settings.hashtagEncoder(Settings.getWordSource(), newWord));
-                    } else {
-                        Game.createInstance().playGame(Settings.getWordSource(), Settings.getInitWord(),
-                                Settings.getCurrentHashtag());
-                    }
+                    Game.createInstance().playGame(Settings.getWordSource(), Settings.getInitWord(),
+                            Settings.getCurrentHashtag());
                     window.setVisible(false);
                 });
         toRestart.setBackground(new Color(25, 100, 25));
@@ -217,7 +210,7 @@ public class Results {
         windowPanel.add(copiedReminder);
         currentHeight += CONTENT_MARGIN / 2;
         JButton shareResult = Settings.initButton("Comparteix", CONTENT_MARGIN, currentHeight,
-                CONTENT_WIDTH, CONTENT_HEIGHT, 50, event -> {
+                CONTENT_WIDTH, CONTENT_HEIGHT, 40, event -> {
                     StringBuilder resultStr = new StringBuilder();
                     resultStr.append("eWordle ").append(isOpenedHelper ? "*" : "").append(isSuccess ? triesUsed : "X")
                             .append("/").append(Settings.getInitWord().length() + 1).append("\n");
