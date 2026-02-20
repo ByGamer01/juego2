@@ -471,7 +471,7 @@ public class Service {
                             break;
                         }
                         else if (mustNotExist.contains(ch)) {
-                            ok = false;
+                            ok = false; //
                             break;
                         } else if (existCount.getOrDefault(ch, 0) <
                                 mustExistCount.getOrDefault(ch, 0)) {
