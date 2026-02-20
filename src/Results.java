@@ -181,7 +181,7 @@ public class Results {
         // Add two buttons to the window with event handlers respectively.
         currentHeight += CONTENT_MARGIN + 10;
         JButton toSettings = Settings.initButton("Configuració", CONTENT_MARGIN, currentHeight,
-                (CONTENT_WIDTH - CONTENT_MARGIN) / 2, CONTENT_HEIGHT, 40, event -> {
+                (CONTENT_WIDTH - CONTENT_MARGIN) / 2, CONTENT_HEIGHT, 20, event -> {
                     Settings.getInstance().setVisibleStatus(true);
                     window.setVisible(false);
                 });
@@ -191,9 +191,16 @@ public class Results {
         windowPanel.add(toSettings);
         JButton toRestart = Settings.initButton("Tornar a jugar",
                 CONTENT_MARGIN * 2 + (CONTENT_WIDTH - CONTENT_MARGIN) / 2, currentHeight,
-                (CONTENT_WIDTH - CONTENT_MARGIN) / 2, CONTENT_HEIGHT, 40, event -> {
-                    Game.createInstance().playGame(Settings.getWordSource(), Settings.getInitWord(),
-                            Settings.getCurrentHashtag());
+                (CONTENT_WIDTH - CONTENT_MARGIN) / 2, CONTENT_HEIGHT, 20, event -> {
+                    String newWord = Service.getInstance().generateRandomWord(
+                            Settings.getInitWord().length(), Settings.getWordSource());
+                    if (newWord != null && !newWord.equals("No trobat")) {
+                        Game.createInstance().playGame(Settings.getWordSource(), newWord, 
+                                Settings.hashtagEncoder(Settings.getWordSource(), newWord));
+                    } else {
+                        Game.createInstance().playGame(Settings.getWordSource(), Settings.getInitWord(),
+                                Settings.getCurrentHashtag());
+                    }
                     window.setVisible(false);
                 });
         toRestart.setBackground(new Color(25, 100, 25));

@@ -256,10 +256,15 @@ public class Game {
                             for (int i = 0; i < initWord.length(); i++)
                                 scoreByOrder.add(2);
                             closeHelperWindow();
-                            Results.getInstance().showResults(initWord, currentLine + 1, true,
-                                    scoreByOrder, isOpenedHelper);
-                            instance = null;
-                            window.dispose();
+                            try {
+                                Results.getInstance().showResults(initWord, currentLine + 1, true,
+                                        scoreByOrder, isOpenedHelper);
+                            } catch (Exception ex) {
+                                ex.printStackTrace();
+                            } finally {
+                                instance = null;
+                                window.dispose();
+                            }
                         }
                         // Word guessed exists in word source of current difficulty level but incorrect.
                         else if (Service.getInstance().checkExistence(currentWord, wordSource).length() == 0) {
@@ -287,9 +292,14 @@ public class Game {
                             // Maximum guess tries reached.
                             if (++currentLine > wordLength) {
                                 closeHelperWindow();
-                                Results.getInstance().showResults(initWord, currentLine, false, scoreByOrder,
-                                        isOpenedHelper);
-                                window.dispose();
+                                try {
+                                    Results.getInstance().showResults(initWord, currentLine, false, scoreByOrder,
+                                            isOpenedHelper);
+                                } catch (Exception ex) {
+                                    ex.printStackTrace();
+                                } finally {
+                                    window.dispose();
+                                }
                             }
                         } else
                             messageBoard.setText("No està a la llista de paraules"); // Cambiado a Catalan
